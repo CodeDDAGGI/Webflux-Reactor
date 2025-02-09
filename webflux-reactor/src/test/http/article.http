@@ -1,0 +1,11 @@
+### 테스트 하는 법 포스트맨 없이
+### 서버가 실행되야 테스트 가능
+### create
+POST {{domain}}/article
+Content-Type: application/json
+
+{
+  "title": "title test reactor",
+  "body": "body1",
+  "authorId": 1234
+}

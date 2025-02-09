@@ -1,0 +1,29 @@
+spring:
+  profiles:
+    active: stress
+---
+# jpa? ??? ddl ??? ??? sql? ?? ???? ?????
+spring:
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:db-init/schema.sql
+  output:
+    ansi:
+      enabled: always
+logging:
+  level:
+    com.study: debug
+    org.springframework.r2dbc.core: off
+---
+spring:
+  config:
+    activate:
+      on-profile: stress
+  r2dbc:
+    url: r2dbc:pool:mariadb://localhost:3308/sample
+    username: user
+    password: 1234
+  sql:
+    init:
+      mode: never

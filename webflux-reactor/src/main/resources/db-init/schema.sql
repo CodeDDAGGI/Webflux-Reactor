@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS TB_ARTICLE (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHER(255),
+    body VARCHER(2000),
+    author_id BIGINT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+    )
