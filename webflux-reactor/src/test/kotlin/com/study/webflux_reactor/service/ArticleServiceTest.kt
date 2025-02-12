@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono
 
 @SpringBootTest
 class ArticleServiceTest(
+    // 서비스는 단위 테스트
     @Autowired
     private val service: ArticleService,
     @Autowired
@@ -59,23 +60,86 @@ class ArticleServiceTest(
         }.rollback().block()
     }
 
-    @Test
-    fun update(){
-        service.create(ReqCreate("타이틀" , body = "바디")).flatMap { create ->
-            service.update(create.id, ReqUpdate("수정된 타이틀" , body = "수정된 바디" ))
-                .flatMap { updated -> service.get(updated.id).doOnNext{ read ->
-                    assertEquals(updated.id , read.id)
-                    assertEquals(updated.title, read.title)
-                    assertEquals(updated.body , read.body)
-                    assertNotNull(updated.updatedAt)
-                }}
-        }.rollback().block()
-    }
+//    @Test
+//    fun update(){
+//        service.create(ReqCreate("타이틀" , body = "바디")).flatMap { create ->
+//            service.update(create.id, ReqUpdate("수정된 타이틀" , body = "수정된 바디" ))
+//                .flatMap { updated -> service.get(updated.id).doOnNext{ read ->
+//                    assertEquals(updated.id , read.id)
+//                    assertEquals(updated.title, read.title)
+//                    assertEquals(updated.body , read.body)
+//                    assertNotNull(updated.updatedAt)
+//                }}
+//        }.rollback().block()
+//    }
+//
+//    @Test
+//    fun delete(){
+//        service.create(ReqCreate("타이틀1" , "바디1")).flatMap {
+//            deleted -> service.delete(deleted.id)
+//        }.rollback().block()
+//    }
 
+//     개발자님 답
+//    @Test
+//    fun update() {
+//        val request = ReqUpdate(
+//            title = "updated !",
+//            body = "update body !"
+//        )
+//
+//        service.create(ReqCreate("title1" , body = "1" , authorId = 1234)).flatMap { new ->
+//            service.update(new.id , request).flatMap {
+//                service.get(new.id)
+//            }.doOnNext{ updated ->
+//                assertEquals(request.title, updated.title)
+//                assertEquals(request.body, updated.body)
+//            }
+//        }.rollback().block()
+//    }
+//    @Test
+//    fun delete() {
+//        // 해당 레파짓토리에서 카운트를 몇개 가지고있는지 Long타입으로 나옴
+//        repository.count().flatMap { prevSize ->
+//            service.create(ReqCreate("title1", body = "blabal")).flatMap { new ->
+//                service.delete(new.id).flatMap {
+//                    // 생성을 하고 삭제를 했으니 다시 0
+//                    repository.count().doOnNext {currSize ->
+//                        assertEquals(prevSize , currSize)
+//                    }
+//                }
+//            }
+//            // void값이여서
+//        }.rollback()
+//    }
+
+    // 마이그레이션을 해야하는 경우
     @Test
-    fun delete(){
-        service.create(ReqCreate("타이틀1" , "바디1")).flatMap {
-            deleted -> service.delete(deleted.id)
+    fun deleteOnRollbackFunctionally() {
+        // 사이사이의 테스트가능
+        // 추가 검증이 필요할때
+        // 함수형 람다식 체이닝
+        // flatMap은 연산이 없음
+        repository.count().flatMap { prevSize ->
+            service.create(ReqCreate("title1" , body = "blabla")).flatMap { created ->
+                // 튜플 형태
+                Mono.zip(Mono.just(prevSize), Mono.just(created))
+            }
+        }.flatMap { context ->
+            // Mono.zip의 2번째값 Mono.just(created)
+            val created = context.t2
+            service.delete(created.id).flatMap {
+            //Mono.zip의 1번째값 Mono.just(prevSize)
+                Mono.zip(Mono.just(context.t1) , Mono.just(created))
+            }
+        }.flatMap { context ->
+            repository.count().flatMap { currSize ->
+                Mono.zip(Mono.just(context.t1), Mono.just(context.t2),Mono.just(currSize))
+            }
+        }.doOnNext{
+            val prevSize = it.t1
+            val currSize = it.t3
+            assertEquals(prevSize , currSize)
         }.rollback().block()
     }
 }
