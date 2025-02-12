@@ -1,5 +1,6 @@
 package com.study.webflux_reactor.service
 
+import com.study.webflux_reactor.model.Article
 import com.study.webflux_reactor.repository.ArticleRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ class ArticleServiceTest(
     private val repository: ArticleRepository
 ){
     @Test
-    fun createAndGet(){
+    fun createAndGet() {
         service.create(ReqCreate("title1", body = "blabla")).flatMap { created ->
             // doOnNext : 비동기 머하고 나서 머해라 (순서보장용)
             service.get(created.id).doOnNext{ read ->
@@ -55,6 +56,26 @@ class ArticleServiceTest(
             service.getAll("match").collectList().doOnNext{
                 assertEquals(1 , it.size)
             }
+        }.rollback().block()
+    }
+
+    @Test
+    fun update(){
+        service.create(ReqCreate("타이틀" , body = "바디")).flatMap { create ->
+            service.update(create.id, ReqUpdate("수정된 타이틀" , body = "수정된 바디" ))
+                .flatMap { updated -> service.get(updated.id).doOnNext{ read ->
+                    assertEquals(updated.id , read.id)
+                    assertEquals(updated.title, read.title)
+                    assertEquals(updated.body , read.body)
+                    assertNotNull(updated.updatedAt)
+                }}
+        }.rollback().block()
+    }
+
+    @Test
+    fun delete(){
+        service.create(ReqCreate("타이틀1" , "바디1")).flatMap {
+            deleted -> service.delete(deleted.id)
         }.rollback().block()
     }
 }

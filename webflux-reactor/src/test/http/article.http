@@ -9,3 +9,22 @@ Content-Type: application/json
   "body": "body1",
   "authorId": 1234
 }
+
+### get
+GET {{domain}}/article/8
+
+### getAll
+GET {{domain}}/article/all
+
+### put
+PUT {{domain}}/article/8
+Content-Type: application/json
+
+{
+  "title": "title update",
+  "body" : "body14",
+  "authorId": 5467
+}
+
+### Delete
+DELETE {{domain}}/article/11

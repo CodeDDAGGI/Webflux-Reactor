@@ -1,0 +1,1 @@
+SHOW VARIABLES LIKE 'log_bin_basename';
