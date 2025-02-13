@@ -68,6 +68,16 @@ class ArticleControllerTest(
             .jsonPath("$.length()").isEqualTo(1)
     }
 
+    @Test
+    fun get() {
+        val request = ReqCreate("title" , "body" , 1234)
+        client.post().uri("/article").accept(MediaType.APPLICATION_JSON).bodyValue(request).exchange()
+
+        val clientGet = client.get().uri("/article/2").accept(MediaType.APPLICATION_JSON).exchange()
+        println(clientGet)
+    }
+
+
     // get , update , delete 숙제
     // docker에 레디스 띄우기
     // 레디스는 기본포트가 6379
